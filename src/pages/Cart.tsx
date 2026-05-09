@@ -1,14 +1,43 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../lib/utils';
-import { Trash2, Plus, Minus, ArrowRight, ShoppingBag } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Loader2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
+import { collection, addDoc } from 'firebase/firestore';
+import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 
 export const Cart = () => {
-  const { items, updateQuantity, removeItem, total } = useCart();
+  const { items, updateQuantity, removeItem, total, clearCart } = useCart();
   const { profile, login } = useAuth();
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const navigate = useNavigate();
+
+  const handleCheckout = async () => {
+    if (!profile) return login();
+    
+    setIsCheckingOut(true);
+    try {
+      const ordersPath = 'orders';
+      const orderData = {
+        userId: profile.uid,
+        items: items,
+        total: total,
+        status: 'pending',
+        shippingAddress: '123 Default Street, City, Country', // Placeholder address
+        createdAt: new Date().toISOString(),
+      };
+      
+      await addDoc(collection(db, ordersPath), orderData);
+      clearCart();
+      navigate('/orders');
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'orders');
+    } finally {
+      setIsCheckingOut(false);
+    }
+  };
 
   if (items.length === 0) {
     return (
@@ -98,10 +127,20 @@ export const Cart = () => {
 
             {profile ? (
               <button 
-                className="w-full bg-black text-white py-4 rounded-full font-bold uppercase tracking-tight hover:bg-gray-900 flex items-center justify-center gap-2"
-                onClick={() => alert("Checkout integration coming soon!")}
+                className="w-full bg-black text-white py-4 rounded-full font-bold uppercase tracking-tight hover:bg-gray-900 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleCheckout}
+                disabled={isCheckingOut}
               >
-                Checkout <ArrowRight size={20} />
+                {isCheckingOut ? (
+                  <>
+                    <Loader2 size={20} className="animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    Checkout <ArrowRight size={20} />
+                  </>
+                )}
               </button>
             ) : (
               <button 

@@ -7,11 +7,13 @@ import { Home } from './pages/Home';
 import { Shop } from './pages/Shop';
 import { ProductDetail } from './pages/ProductDetail';
 import { Cart } from './pages/Cart';
+import { Orders } from './pages/Orders';
 import { motion } from 'motion/react';
 import { seedMockData } from './lib/seed';
 
 // Footer component
 const Footer = () => (
+// ... (omitting footer for brevity in edit_file call, but I must provide full context for target)
   <footer className="bg-gray-50 pt-24 pb-12 border-t border-gray-100">
     <div className="max-w-7xl mx-auto px-4">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
@@ -75,6 +77,7 @@ export default function App() {
                 <Route path="/category/:categoryId" element={<Shop />} />
                 <Route path="/product/:id" element={<ProductDetail />} />
                 <Route path="/cart" element={<Cart />} />
+                <Route path="/orders" element={<Orders />} />
               </Routes>
             </main>
             <Footer />

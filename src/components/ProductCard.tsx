@@ -5,6 +5,7 @@ import { formatPrice } from '../lib/utils';
 import { ShoppingBag, ChevronRight } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
+import { ProductImage } from './ProductImage';
 
 interface ProductCardProps {
   product: Product;
@@ -19,11 +20,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       className="group relative flex flex-col bg-white rounded-2xl overflow-hidden border border-gray-100 transition-all hover:border-gray-200 hover:shadow-xl hover:shadow-black/5"
     >
       <Link to={`/product/${product.id}`} className="aspect-[4/5] overflow-hidden bg-gray-50">
-        <img 
+        <ProductImage 
           src={product.imageUrl} 
           alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-          referrerPolicy="no-referrer"
+          className="transition-transform duration-700 group-hover:scale-110"
         />
         <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
           <button 

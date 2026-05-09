@@ -7,6 +7,7 @@ import { useCart } from '../context/CartContext';
 import { formatPrice } from '../lib/utils';
 import { ArrowLeft, ShoppingBag, ShieldCheck, Truck, RefreshCw } from 'lucide-react';
 import { motion } from 'motion/react';
+import { ProductImage } from '../components/ProductImage';
 
 export const ProductDetail = () => {
   const { id } = useParams();
@@ -43,9 +44,9 @@ export const ProductDetail = () => {
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="aspect-square bg-gray-50 rounded-3xl overflow-hidden"
+          className="aspect-square rounded-3xl overflow-hidden shadow-2xl shadow-black/5"
         >
-          <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+          <ProductImage src={product.imageUrl} alt={product.name} />
         </motion.div>
 
         <motion.div
