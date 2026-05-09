@@ -8,6 +8,7 @@ import { Shop } from './pages/Shop';
 import { ProductDetail } from './pages/ProductDetail';
 import { Cart } from './pages/Cart';
 import { Orders } from './pages/Orders';
+import { Admin } from './pages/Admin';
 import { motion } from 'motion/react';
 import { seedMockData } from './lib/seed';
 
@@ -78,6 +79,7 @@ export default function App() {
                 <Route path="/product/:id" element={<ProductDetail />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/orders" element={<Orders />} />
+                <Route path="/admin" element={<Admin />} />
               </Routes>
             </main>
             <Footer />

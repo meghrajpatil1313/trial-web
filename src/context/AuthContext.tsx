@@ -7,6 +7,7 @@ import { UserProfile } from '../types';
 interface AuthContextType {
   user: User | null;
   profile: UserProfile | null;
+  isAdmin: boolean;
   loading: boolean;
   login: () => Promise<void>;
   logout: () => Promise<void>;
@@ -17,6 +18,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,20 +27,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (u) {
         const docRef = doc(db, 'users', u.uid);
         const docSnap = await getDoc(docRef);
+        
+        // Check if user is admin based on email or admin collection
+        const adminDoc = await getDoc(doc(db, 'admins', u.uid));
+        const isEmailAdmin = u.email === 'meghrajpatil1313@gmail.com';
+        const isAdminUser = isEmailAdmin || adminDoc.exists();
+        setIsAdmin(isAdminUser);
+
         if (docSnap.exists()) {
-          setProfile(docSnap.data() as UserProfile);
+          setProfile({ ...docSnap.data(), isAdmin: isAdminUser } as UserProfile);
         } else {
           const newProfile: UserProfile = {
             uid: u.uid,
             email: u.email || '',
             displayName: u.displayName || '',
             photoURL: u.photoURL || '',
+            isAdmin: isAdminUser,
           };
           await setDoc(docRef, newProfile);
           setProfile(newProfile);
         }
       } else {
         setProfile(null);
+        setIsAdmin(false);
       }
       setLoading(false);
     });
@@ -52,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => signOut(auth);
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, profile, isAdmin, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

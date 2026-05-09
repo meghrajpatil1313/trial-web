@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingBag, User, LogOut, Menu, X, ChevronRight, Package } from 'lucide-react';
+import { ShoppingBag, User, LogOut, Menu, X, ChevronRight, Package, SlidersHorizontal } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { motion, AnimatePresence } from 'motion/react';
@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import { cn } from '../lib/utils';
 
 export const Header = () => {
-  const { profile, login, logout } = useAuth();
+  const { profile, isAdmin, login, logout } = useAuth();
   const { items } = useCart();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
@@ -40,6 +40,11 @@ export const Header = () => {
               <Link to="/orders" className="hidden md:block p-2 text-gray-600 hover:text-black" title="Order History">
                 <Package size={20} />
               </Link>
+              {isAdmin && (
+                <Link to="/admin" className="hidden md:block p-2 text-gray-600 hover:text-black" title="Admin Dashboard">
+                  <SlidersHorizontal size={20} />
+                </Link>
+              )}
               <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden border border-gray-200">
                 <img src={profile.photoURL} alt={profile.displayName} referrerPolicy="no-referrer" />
               </div>
@@ -93,6 +98,11 @@ export const Header = () => {
               {profile && (
                 <Link to="/orders" className="flex items-center justify-between py-2 text-lg font-medium" onClick={() => setIsMenuOpen(false)}>
                   My Orders <ChevronRight size={18} />
+                </Link>
+              )}
+              {isAdmin && (
+                <Link to="/admin" className="flex items-center justify-between py-2 text-lg font-medium" onClick={() => setIsMenuOpen(false)}>
+                  Admin Dashboard <ChevronRight size={18} />
                 </Link>
               )}
               <hr />
