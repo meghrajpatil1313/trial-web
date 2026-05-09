@@ -1,0 +1,93 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // -------------------------------------------------------------------------
+    // GLOBAL HELPERS
+    // -------------------------------------------------------------------------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Auth tokens SHOULD be checked against a trusted source.
+    // For development, we bootstrap the project owner as an admin.
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == "meghrajpatil1313@gmail.com"
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // -------------------------------------------------------------------------
+    // GLOBAL SAFETY NET
+    // -------------------------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // COLLECTIONS
+    // -------------------------------------------------------------------------
+
+    // Admin collection
+    match /admins/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Products: Publicly readable, Admin writeable
+    match /products/{productId} {
+      function isValidProduct(data) {
+        return data.name is string && data.name.size() <= 200 &&
+               data.price is number && data.price >= 0 &&
+               data.category is string &&
+               data.imageUrl is string &&
+               data.stock is int;
+      }
+
+      allow get, list: if true;
+      allow create, update: if isAdmin() && isValidProduct(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // Users: Private data
+    match /users/{userId} {
+      function isValidUser(data) {
+        return data.uid == userId && data.email is string;
+      }
+
+      allow get: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidUser(incoming()) && !incoming().get('isAdmin', false);
+      allow update: if (isOwner(userId) || isAdmin()) && 
+                    (!incoming().diff(existing()).affectedKeys().hasAny(['isAdmin']) || isAdmin());
+    }
+
+    // Orders: Private history
+    match /orders/{orderId} {
+      allow get: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
+      allow update: if isAdmin();
+    }
+
+    // Carts: Private active cart
+    match /carts/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+  }
+}
