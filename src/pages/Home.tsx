@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, limit, onSnapshot, where } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../lib/firebase';
+import { collection, query, limit, getDocs, where } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import { Product } from '../types';
 import { ProductCard } from '../components/ProductCard';
 import { Link } from 'react-router-dom';
@@ -11,15 +11,12 @@ export const Home = () => {
   const [featured, setFeatured] = useState<Product[]>([]);
 
   useEffect(() => {
-    const q = query(collection(db, 'products'), where('featured', '==', true), limit(8));
-    
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const fetchFeatured = async () => {
+      const q = query(collection(db, 'products'), where('featured', '==', true), limit(4));
+      const snapshot = await getDocs(q);
       setFeatured(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'products');
-    });
-
-    return () => unsubscribe();
+    };
+    fetchFeatured();
   }, []);
 
   return (

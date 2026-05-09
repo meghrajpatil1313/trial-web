@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { Header } from './components/Header';
 import { Home } from './pages/Home';
@@ -58,25 +58,14 @@ const Footer = () => (
 );
 
 export default function App() {
+  React.useEffect(() => {
+    seedMockData();
+  }, []);
+
   return (
     <AuthProvider>
       <CartProvider>
-        <AppContent />
-      </CartProvider>
-    </AuthProvider>
-  );
-}
-
-function AppContent() {
-  const { user } = useAuth();
-
-  React.useEffect(() => {
-    // Attempt seeding. If user becomes admin (logs in), this will succeed if empty.
-    seedMockData();
-  }, [user]);
-
-  return (
-    <BrowserRouter>
+        <BrowserRouter>
           <div className="min-h-screen bg-white selection:bg-black selection:text-white">
             <Header />
             <main>
@@ -91,5 +80,7 @@ function AppContent() {
             <Footer />
           </div>
         </BrowserRouter>
+      </CartProvider>
+    </AuthProvider>
   );
 }
