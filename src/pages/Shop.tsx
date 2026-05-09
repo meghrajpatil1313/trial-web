@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { collection, query, getDocs, where } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { collection, query, onSnapshot, where } from 'firebase/firestore';
+import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { Product } from '../types';
 import { ProductCard } from '../components/ProductCard';
 import { useParams } from 'react-router-dom';
@@ -21,22 +21,21 @@ export const Shop = () => {
   const [sortBy, setSortBy] = useState('latest');
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      try {
-        let q = query(collection(db, 'products'));
-        if (categoryId) {
-          q = query(collection(db, 'products'), where('category', '==', categoryId));
-        }
-        const snapshot = await getDocs(q);
-        setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProducts();
+    setLoading(true);
+    let q = query(collection(db, 'products'));
+    if (categoryId) {
+      q = query(collection(db, 'products'), where('category', '==', categoryId));
+    }
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
+      setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'products');
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, [categoryId]);
 
   const filteredProducts = useMemo(() => {
